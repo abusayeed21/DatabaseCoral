@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Connection Tester</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success {
+            background: #d4edda;
+            border: 2px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .error {
+            background: #f8d7da;
+            border: 2px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .info {
+            background: #d1ecf1;
+            border: 2px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .result h3 {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result p {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .icon {
+            font-size: 24px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.5);
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        .info-card strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #0c5460;
+        }
+
+        .tables-list {
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .tables-list ul {
+            list-style: none;
+        }
+
+        .tables-list li {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(12, 84, 96, 0.1);
+        }
+
+        .tables-list li:last-child {
+            border-bottom: none;
+        }
+
+        .note {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            color: #856404;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗄️ Database Connection Tester</h1>
+        <p class="subtitle">Test your MySQL/MariaDB database connection instantly</p>
+
+        <form method="POST" action="">
+            <div class="form-group">
+                <label for="db_type">Database Type</label>
+                <select name="db_type" id="db_type">
+                    <option value="mysql" selected>MySQL / MariaDB</option>
+                    <option value="pgsql">PostgreSQL</option>
+                    <option value="sqlite">SQLite</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="host">Host</label>
+                <input type="text" id="host" name="host" value="<?php echo htmlspecialchars($_POST['host'] ?? 'localhost'); ?>" placeholder="localhost or 127.0.0.1">
+            </div>
+
+            <div class="form-group">
+                <label for="port">Port</label>
+                <input type="text" id="port" name="port" value="<?php echo htmlspecialchars($_POST['port'] ?? '3306'); ?>" placeholder="3306 (default for MySQL)">
+            </div>
+
+            <div class="form-group">
+                <label for="database">Database Name</label>
+                <input type="text" id="database" name="database" value="<?php echo htmlspecialchars($_POST['database'] ?? ''); ?>" placeholder="your_database_name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" value="<?php echo htmlspecialchars($_POST['username'] ?? 'root'); ?>" placeholder="root" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" value="<?php echo htmlspecialchars($_POST['password'] ?? ''); ?>" placeholder="Enter password (if any)">
+            </div>
+
+            <button type="submit" name="test_connection" class="btn">🔌 Test Connection</button>
+        </form>
+
+        <?php
+        if (isset($_POST['test_connection'])) {
+            $dbType = $_POST['db_type'] ?? 'mysql';
+            $host = $_POST['host'] ?? 'localhost';
+            $port = $_POST['port'] ?? '3306';
+            $database = $_POST['database'] ?? '';
+            $username = $_POST['username'] ?? 'root';
+            $password = $_POST['password'] ?? '';
+
+            echo '<div class="result ';
+            
+            try {
+                $startTime = microtime(true);
+                
+                // Build DSN based on database type
+                if ($dbType === 'sqlite') {
+                    $dsn = "sqlite:$database";
+                } else {
+                    $dsn = "$dbType:host=$host;port=$port;dbname=$database;charset=utf8mb4";
+                }
+                
+                // Attempt connection
+                $pdo = new PDO($dsn, $username, $password, [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    PDO::ATTR_EMULATE_PREPARES => false,
+                ]);
+                
+                $endTime = microtime(true);
+                $connectionTime = round(($endTime - $startTime) * 1000, 2);
+                
+                echo 'success">';
+                echo '<h3><span class="icon">✅</span> Connection Successful!</h3>';
+                echo '<p><strong>Great!</strong> Successfully connected to the database.</p>';
+                
+                // Get database info
+                echo '<div class="info-grid">';
+                
+                // Server version
+                $version = $pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
+                echo '<div class="info-card">';
+                echo '<strong>Server Version</strong>';
+                echo '<span>' . htmlspecialchars($version) . '</span>';
+                echo '</div>';
+                
+                // Connection time
+                echo '<div class="info-card">';
+                echo '<strong>Connection Time</strong>';
+                echo '<span>' . $connectionTime . ' ms</span>';
+                echo '</div>';
+                
+                // Driver name
+                $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+                echo '<div class="info-card">';
+                echo '<strong>Driver</strong>';
+                echo '<span>' . strtoupper($driver) . '</span>';
+                echo '</div>';
+                
+                // Client version
+                $clientVersion = $pdo->getAttribute(PDO::ATTR_CLIENT_VERSION);
+                echo '<div class="info-card">';
+                echo '<strong>Client Version</strong>';
+                echo '<span>' . htmlspecialchars($clientVersion) . '</span>';
+                echo '</div>';
+                
+                echo '</div>';
+                
+                // Get list of tables
+                if ($dbType === 'mysql') {
+                    $stmt = $pdo->query("SHOW TABLES");
+                    $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
+                    
+                    if (!empty($tables)) {
+                        echo '<div class="tables-list">';
+                        echo '<strong>Tables in this database (' . count($tables) . '):</strong>';
+                        echo '<ul>';
+                        foreach ($tables as $table) {
+                            echo '<li>📋 ' . htmlspecialchars($table) . '</li>';
+                        }
+                        echo '</ul>';
+                        echo '</div>';
+                    } else {
+                        echo '<p style="margin-top: 15px;"><em>No tables found in this database.</em></p>';
+                    }
+                    
+                    // Get database size
+                    $stmt = $pdo->query("
+                        SELECT 
+                            ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS size_mb
+                        FROM information_schema.TABLES 
+                        WHERE table_schema = '$database'
+                    ");
+                    $size = $stmt->fetch();
+                    if ($size && $size['size_mb']) {
+                        echo '<p style="margin-top: 15px;"><strong>Database Size:</strong> ' . $size['size_mb'] . ' MB</p>';
+                    }
+                }
+                
+                // Connection string (for reference)
+                echo '<div class="note">';
+                echo '<strong>📝 Connection String (for your code):</strong><br>';
+                echo '<code>$pdo = new PDO("' . htmlspecialchars($dsn) . '", "' . htmlspecialchars($username) . '", "password");</code>';
+                echo '</div>';
+                
+            } catch (PDOException $e) {
+                echo 'error">';
+                echo '<h3><span class="icon">❌</span> Connection Failed</h3>';
+                echo '<p><strong>Error Message:</strong></p>';
+                echo '<p>' . htmlspecialchars($e->getMessage()) . '</p>';
+                
+                // Common error solutions
+                echo '<div style="margin-top: 15px;">';
+                echo '<p><strong>Common Solutions:</strong></p>';
+                echo '<ul style="margin-left: 20px; margin-top: 10px;">';
+                
+                if (strpos($e->getMessage(), 'Access denied') !== false) {
+                    echo '<li>Check your username and password</li>';
+                    echo '<li>Verify user has proper privileges</li>';
+                } elseif (strpos($e->getMessage(), 'Unknown database') !== false) {
+                    echo '<li>Database name might be incorrect</li>';
+                    echo '<li>Database might not exist - create it first</li>';
+                } elseif (strpos($e->getMessage(), 'Connection refused') !== false) {
+                    echo '<li>Check if MySQL/MariaDB service is running</li>';
+                    echo '<li>Verify the host and port are correct</li>';
+                    echo '<li>Check firewall settings</li>';
+                } else {
+                    echo '<li>Verify all connection details are correct</li>';
+                    echo '<li>Check if the database server is running</li>';
+                    echo '<li>Ensure PHP PDO extension is installed</li>';
+                }
+                
+                echo '</ul>';
+                echo '</div>';
+            }
+            
+            echo '</div>';
+        }
+        ?>
+
+        <div class="note" style="margin-top: 30px;">
+            <strong>💡 Tips:</strong>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li>Default MySQL port is <strong>3306</strong></li>
+                <li>Default PostgreSQL port is <strong>5432</strong></li>
+                <li>For localhost, you can use <strong>127.0.0.1</strong></li>
+                <li>Make sure PDO extension is enabled in php.ini</li>
+                <li>This tool uses PDO (PHP Data Objects) for connection</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
